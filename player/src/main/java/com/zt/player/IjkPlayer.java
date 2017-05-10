@@ -17,6 +17,8 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
@@ -157,6 +159,55 @@ public class IjkPlayer extends FrameLayout implements MediaController.MediaPlaye
                 LayoutParams.WRAP_CONTENT,
                 Gravity.BOTTOM);
         addView(subtitleDisplay, layoutParams_txt);
+    }
+
+    /**
+     * Sets video path.
+     *
+     * @param path the path of the video.
+     */
+    public void setVideoPath(String path) {
+        setVideoURI(Uri.parse(path));
+    }
+
+    /**
+     * Sets video URI.
+     *
+     * @param uri the URI of the video.
+     */
+    public void setVideoURI(Uri uri) {
+        setVideoURI(uri, null);
+    }
+
+    /**
+     * Sets video URI using specific headers.
+     *
+     * @param uri     the URI of the video.
+     * @param headers the headers for the URI request.
+     *                Note that the cross domain redirection is allowed by default, but that can be
+     *                changed with key/value pairs through the headers parameter with
+     *                "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
+     *                to disallow or allow cross domain redirection.
+     */
+    private void setVideoURI(Uri uri, Map<String, String> headers) {
+        mUri = uri;
+        mHeaders = headers;
+        mSeekWhenPrepared = 0;
+        openVideo();
+        requestLayout();
+        invalidate();
+    }
+
+    public void stopPlayback() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+            mCurrentState = STATE_IDLE;
+            mTargetState = STATE_IDLE;
+            AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
+            am.abandonAudioFocus(null);
+        }
     }
 
     public void setRenderView(IRenderView renderView) {
@@ -347,6 +398,14 @@ public class IjkPlayer extends FrameLayout implements MediaController.MediaPlaye
         } finally {
             // REMOVED: mPendingSubtitleTracks.clear();
         }
+    }
+
+    public void setMediaController(IMediaController controller) {
+        if (mMediaController != null) {
+            mMediaController.hide();
+        }
+        mMediaController = controller;
+        attachMediaController();
     }
 
     private void attachMediaController() {
@@ -864,5 +923,112 @@ public class IjkPlayer extends FrameLayout implements MediaController.MediaPlaye
     };
 
     //endregion
+
+    /**
+     * Register a callback to be invoked when the media file
+     * is loaded and ready to go.
+     *
+     * @param l The callback that will be run
+     */
+    public void setOnPreparedListener(IMediaPlayer.OnPreparedListener l) {
+        mOnPreparedListener = l;
+    }
+
+    /**
+     * Register a callback to be invoked when the end of a media file
+     * has been reached during playback.
+     *
+     * @param l The callback that will be run
+     */
+    public void setOnCompletionListener(IMediaPlayer.OnCompletionListener l) {
+        mOnCompletionListener = l;
+    }
+
+    /**
+     * Register a callback to be invoked when an error occurs
+     * during playback or setup.  If no listener is specified,
+     * or if the listener returned false, VideoView will inform
+     * the user of any errors.
+     *
+     * @param l The callback that will be run
+     */
+    public void setOnErrorListener(IMediaPlayer.OnErrorListener l) {
+        mOnErrorListener = l;
+    }
+
+    /**
+     * Register a callback to be invoked when an informational event
+     * occurs during playback or setup.
+     *
+     * @param l The callback that will be run
+     */
+    public void setOnInfoListener(IMediaPlayer.OnInfoListener l) {
+        mOnInfoListener = l;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (isInPlaybackState() && mMediaController != null) {
+            toggleMediaControlsVisiblity();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onTrackballEvent(MotionEvent ev) {
+        if (isInPlaybackState() && mMediaController != null) {
+            toggleMediaControlsVisiblity();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        boolean isKeyCodeSupported = keyCode != KeyEvent.KEYCODE_BACK &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_MUTE &&
+                keyCode != KeyEvent.KEYCODE_MENU &&
+                keyCode != KeyEvent.KEYCODE_CALL &&
+                keyCode != KeyEvent.KEYCODE_ENDCALL;
+        if (isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
+            if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+                if (mMediaPlayer.isPlaying()) {
+                    pause();
+                    mMediaController.show();
+                } else {
+                    start();
+                    mMediaController.hide();
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                if (!mMediaPlayer.isPlaying()) {
+                    start();
+                    mMediaController.hide();
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
+                    || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+                if (mMediaPlayer.isPlaying()) {
+                    pause();
+                    mMediaController.show();
+                }
+                return true;
+            } else {
+                toggleMediaControlsVisiblity();
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void toggleMediaControlsVisiblity() {
+        if (mMediaController.isShowing()) {
+            mMediaController.hide();
+        } else {
+            mMediaController.show();
+        }
+    }
 
 }
