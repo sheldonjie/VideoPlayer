@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoView = (IjkVideoView)findViewById(R.id.video_view);
         mVideoView.setMediaController(mMediaController);
-        mVideoView.setHudView(mHudView);
+//        mVideoView.setHudView(mHudView);
 
         mVideoPath = "http://video.tt.cmstop.cn/2017/0417/4c0d70cde07ff671d0d675aecf1709f6sd/index.mp4";
 
