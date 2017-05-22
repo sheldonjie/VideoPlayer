@@ -36,7 +36,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
-import android.widget.TextView;
 
 import com.zt.player.R;
 
@@ -123,7 +122,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     private long mSeekStartTime = 0;
     private long mSeekEndTime = 0;
 
-    private TextView subtitleDisplay;
+//    private TextView subtitleDisplay;
 
     public IjkVideoView(Context context) {
         super(context);
@@ -146,11 +145,6 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         initVideoView(context);
     }
 
-    // REMOVED: onMeasure
-    // REMOVED: onInitializeAccessibilityEvent
-    // REMOVED: onInitializeAccessibilityNodeInfo
-    // REMOVED: resolveAdjustedSize
-
     private void initVideoView(Context context) {
         mAppContext = context.getApplicationContext();
         mSettings = new Settings(mAppContext);
@@ -169,14 +163,14 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         mCurrentState = STATE_IDLE;
         mTargetState = STATE_IDLE;
 
-        subtitleDisplay = new TextView(context);
-        subtitleDisplay.setTextSize(24);
-        subtitleDisplay.setGravity(Gravity.CENTER);
-        LayoutParams layoutParams_txt = new LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT,
-                Gravity.BOTTOM);
-        addView(subtitleDisplay, layoutParams_txt);
+//        subtitleDisplay = new TextView(context);
+//        subtitleDisplay.setTextSize(24);
+//        subtitleDisplay.setGravity(Gravity.CENTER);
+//        LayoutParams layoutParams_txt = new LayoutParams(
+//                LayoutParams.MATCH_PARENT,
+//                LayoutParams.WRAP_CONTENT,
+//                Gravity.BOTTOM);
+//        addView(subtitleDisplay, layoutParams_txt);
     }
 
     public void setRenderView(IRenderView renderView) {
@@ -597,7 +591,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         @Override
         public void onTimedText(IMediaPlayer mp, IjkTimedText text) {
             if (text != null) {
-                subtitleDisplay.setText(text.getText());
+//                subtitleDisplay.setText(text.getText());
             }
         }
     };
