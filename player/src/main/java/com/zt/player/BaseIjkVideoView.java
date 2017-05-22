@@ -128,11 +128,15 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
 
     protected abstract int getBackBtnId();   //返回按钮ID
 
-    protected abstract void setCurrentProgress(); //显示当前播放进度
-
-    protected abstract void setTotalProgress();  //显示视频总时长
-
     protected abstract void setBufferProgress(int bufferProgress); //显示缓冲百分比
+
+    protected abstract void resetProgressAndTime();  //重置进度条时间，当前时间，总时间
+
+    protected abstract void startProgressTimer();   //开始进度条任务
+
+    protected abstract void playCompleted();  //播放结束回调
+
+    protected abstract void playError();  //播放错误回到
 
     //endregion
 
@@ -712,7 +716,8 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
             mPrepareEndTime = System.currentTimeMillis();
             mCurrentState = STATE_PREPARED;
 
-            setTotalProgress();
+            resetProgressAndTime();
+            startProgressTimer();
 
             if (mOnPreparedListener != null) {
                 mOnPreparedListener.onPrepared(mMediaPlayer);
@@ -781,12 +786,10 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
                 public void onCompletion(IMediaPlayer mp) {
                     mCurrentState = STATE_PLAYBACK_COMPLETED;
                     mTargetState = STATE_PLAYBACK_COMPLETED;
-//                    if (mMediaController != null) {
-//                        mMediaController.hide();
-//                    }
                     if (mOnCompletionListener != null) {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
                     }
+                    playCompleted();
                 }
             };
 
@@ -797,11 +800,9 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
                     LogUtil.d(TAG, "Error: " + framework_err + "," + impl_err);
                     mCurrentState = STATE_ERROR;
                     mTargetState = STATE_ERROR;
-//                    if (mMediaController != null) {
-//                        mMediaController.hide();
-//                    }
 
-                    /* If an error handler has been supplied, use it and finish. */
+                    playError();
+
                     if (mOnErrorListener != null) {
                         if (mOnErrorListener.onError(mMediaPlayer, framework_err, impl_err)) {
                             return true;

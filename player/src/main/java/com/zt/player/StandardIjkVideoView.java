@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.util.Timer;
@@ -28,6 +29,7 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
     private TextView totalTimeText;
     private TextView currentTimeText;
     private ProgressBar bottomProgressbar;
+    private SeekBar seekBar;
 
     public StandardIjkVideoView(@NonNull Context context) {
         super(context);
@@ -53,9 +55,10 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
         startButton = (ImageView) findViewById(R.id.start);
         bottomContainer = (ViewGroup) findViewById(R.id.layout_bottom);
         topContainer = (ViewGroup) findViewById(R.id.layout_top);
-        totalTimeText = (TextView)findViewById(R.id.total);
-        currentTimeText = (TextView)findViewById(R.id.current);
-        bottomProgressbar = (ProgressBar)findViewById(R.id.bottom_progressbar);
+        totalTimeText = (TextView) findViewById(R.id.total);
+        currentTimeText = (TextView) findViewById(R.id.current);
+        bottomProgressbar = (ProgressBar) findViewById(R.id.bottom_progressbar);
+        seekBar = (SeekBar) findViewById(R.id.progress);
     }
 
     @Override
@@ -79,18 +82,82 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
     }
 
     @Override
-    protected void setCurrentProgress() {
-    }
-
-    @Override
-    protected void setTotalProgress() {
-        totalTimeText.setText(CTUtils.stringForTime(getDuration()));
-    }
-
-    @Override
     protected void setBufferProgress(int bufferProgress) {
         bottomProgressbar.setSecondaryProgress(bufferProgress);
     }
+
+    @Override
+    protected void resetProgressAndTime() {
+        bottomProgressbar.setProgress(0);
+        bottomProgressbar.setSecondaryProgress(0);
+        currentTimeText.setText(CTUtils.stringForTime(0));
+        totalTimeText.setText(CTUtils.stringForTime(0));
+    }
+
+    //region Progress Timer
+
+    private Timer updateProgressTimer;
+    private ProgressTimerTask mProgressTimerTask;
+    private boolean mTouchingProgressBar = false;
+
+    @Override
+    protected void startProgressTimer() {
+        cancelProgressTimer();
+        updateProgressTimer = new Timer();
+        mProgressTimerTask = new ProgressTimerTask();
+        updateProgressTimer.schedule(mProgressTimerTask, 0, 300);
+    }
+
+    @Override
+    protected void playCompleted() {
+        cancelProgressTimer();
+        seekBar.setProgress(100);
+        currentTimeText.setText(totalTimeText.getText());
+    }
+
+    @Override
+    protected void playError() {
+        cancelProgressTimer();
+    }
+
+    private void cancelProgressTimer() {
+        if (updateProgressTimer != null) {
+            updateProgressTimer.cancel();
+        }
+        if (mProgressTimerTask != null) {
+            mProgressTimerTask.cancel();
+        }
+    }
+
+    private class ProgressTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            if (isInPlaybackState()) {
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        setProgressAndText();
+                    }
+                });
+            }
+        }
+    }
+
+    protected void setProgressAndText() {
+        int position = getCurrentPosition();
+        int duration = getDuration();
+        int progress = position * 100 / (duration == 0 ? 1 : duration);
+        if (!mTouchingProgressBar) {
+            if (progress != 0) {
+                bottomProgressbar.setProgress(progress);
+                seekBar.setProgress(progress);
+            }
+        }
+        if (position != 0) currentTimeText.setText(CTUtils.stringForTime(position));
+        totalTimeText.setText(CTUtils.stringForTime(duration));
+    }
+
+    //endregion
 
     @Override
     protected void playBtnClick() {

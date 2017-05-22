@@ -28,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoPath = "http://video.jiecao.fm/8/16/%E4%BF%AF%E5%8D%A7%E6%92%91.mp4";
 
+//        mVideoPath = "http://ivi.bupt.edu.cn/hls/chchd.m3u8";
+
+//        mVideoPath = "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8";
+
         if (mVideoPath != null) {
             mVideoView.setVideoPath(mVideoPath);
         }
