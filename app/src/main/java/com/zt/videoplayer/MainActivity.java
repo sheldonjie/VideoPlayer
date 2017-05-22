@@ -26,12 +26,10 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoView = (StandardIjkVideoView)findViewById(R.id.video_view);
 
-        mVideoPath = "http://video.tt.cmstop.cn/2017/0417/4c0d70cde07ff671d0d675aecf1709f6sd/index.mp4";
+        mVideoPath = "http://video.jiecao.fm/8/16/%E4%BF%AF%E5%8D%A7%E6%92%91.mp4";
 
         if (mVideoPath != null) {
             mVideoView.setVideoPath(mVideoPath);
         }
-
-        mVideoView.start();
     }
 }

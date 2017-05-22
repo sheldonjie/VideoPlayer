@@ -17,6 +17,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.zt.player.ijk.widget.media.FileMediaDataSource;
@@ -45,7 +46,7 @@ import tv.danmaku.ijk.media.player.misc.IMediaDataSource;
  * Created by zhouteng on 2017/5/22.
  */
 
-public abstract class BaseIjkVideoView extends FrameLayout {
+public abstract class BaseIjkVideoView extends FrameLayout implements View.OnClickListener {
 
     public static final String TAG = "BaseIjkVideoView";
 
@@ -72,56 +73,132 @@ public abstract class BaseIjkVideoView extends FrameLayout {
     private int mVideoRotationDegree;
 
     // all possible internal states
-    private static final int STATE_ERROR = -1;
-    private static final int STATE_IDLE = 0;
-    private static final int STATE_PREPARING = 1;
-    private static final int STATE_PREPARED = 2;
-    private static final int STATE_PLAYING = 3;
-    private static final int STATE_PAUSED = 4;
-    private static final int STATE_PLAYBACK_COMPLETED = 5;
+    protected static final int STATE_ERROR = -1;
+    protected static final int STATE_IDLE = 0;
+    protected static final int STATE_PREPARING = 1;
+    protected static final int STATE_PREPARED = 2;
+    protected static final int STATE_PLAYING = 3;
+    protected static final int STATE_PAUSED = 4;
+    protected static final int STATE_PLAYBACK_COMPLETED = 5;
 
     // mCurrentState is a VideoView object's current state.
     // mTargetState is the state that a method caller intends to reach.
     // For instance, regardless the VideoView object's current state,
     // calling pause() intends to bring the object to a target state
     // of STATE_PAUSED.
-    private int mCurrentState = STATE_IDLE;
+    protected int mCurrentState = STATE_IDLE;
     private int mTargetState = STATE_IDLE;
 
     private int mSeekWhenPrepared;
 
-    private FrameLayout surface_container;
-
     public BaseIjkVideoView(@NonNull Context context) {
         super(context);
-        initView(context);
+        init(context);
     }
 
     public BaseIjkVideoView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        initView(context);
+        init(context);
     }
 
     public BaseIjkVideoView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initView(context);
+        init(context);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public BaseIjkVideoView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr, @StyleRes int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        initView(context);
+        init(context);
     }
 
-    protected abstract int getLayoutId();
+    //region Custom LayoutId
 
-    protected abstract int getSurfaceContainerId();
+    protected abstract int getLayoutId();   //布局ID
 
-    protected void initView(Context context) {
-        mAppContext = context.getApplicationContext();
+    protected abstract int getSurfaceContainerId();  //布局中视频区域ID
+
+    protected abstract void surfaceContainerClick(); //视频区域点击事件回调
+
+    protected abstract int getPlayBtnId();   //布局中播放按钮ID
+
+    protected abstract void playBtnClick();    //播放按钮按下时，UI回调
+
+    protected abstract void pauseBtnClick();   //暂停按钮按下时,UI回调
+
+    protected abstract int getBackBtnId();   //返回按钮ID
+
+    protected abstract void setCurrentProgress(); //显示当前播放进度
+
+    protected abstract void setTotalProgress();  //显示视频总时长
+
+    protected abstract void setBufferProgress(int bufferProgress); //显示缓冲百分比
+
+    //endregion
+
+    //region View Interaction
+
+    private ViewGroup surfaceContainer;
+    private View playBtn;
+    private View backBtn;
+
+    private boolean isFullScreen;
+
+    private final void initView(Context context) {
+
         View view = inflate(context, getLayoutId(), this);
-        surface_container = (FrameLayout) view.findViewById(getSurfaceContainerId());
 
+        surfaceContainer = (ViewGroup) view.findViewById(getSurfaceContainerId());
+        surfaceContainer.setOnClickListener(this);
+
+        playBtn = view.findViewById(getPlayBtnId());
+        playBtn.setOnClickListener(this);
+
+        backBtn = view.findViewById(getBackBtnId());
+        backBtn.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == getPlayBtnId()) {
+            if (isPlaying()) {
+                pause();
+                pauseBtnClick();
+            } else {
+                start();
+                playBtnClick();
+            }
+        } else if (id == getBackBtnId()) {
+            if (isFullScreen) {
+
+            } else {
+                exitCurrenActivity();
+            }
+        } else if (id == getSurfaceContainerId()) {
+            surfaceContainerClick();
+        }
+    }
+
+    protected void exitCurrenActivity() {
+        release(true);
+        CTUtils.exitActivity(getContext());
+    }
+
+    protected void exitFullScreen() {
+
+    }
+
+    protected void startFullScreen() {
+
+    }
+
+    //endregion
+
+    protected void init(Context context) {
+        mAppContext = context.getApplicationContext();
+
+        initView(context);
         initSettings();
         initBackground();
         initRenders();
@@ -137,6 +214,7 @@ public abstract class BaseIjkVideoView extends FrameLayout {
         mTargetState = STATE_IDLE;
 
     }
+
 
     private void initSettings() {
         mSettings = new Settings(mAppContext);
@@ -197,8 +275,8 @@ public abstract class BaseIjkVideoView extends FrameLayout {
                 Gravity.CENTER);
         renderUIView.setLayoutParams(lp);
 
-        surface_container.removeAllViews();
-        surface_container.addView(renderUIView);
+        surfaceContainer.removeAllViews();
+        surfaceContainer.addView(renderUIView);
 
         mRenderView.addRenderCallback(mSHCallback);
         mRenderView.setVideoRotation(mVideoRotationDegree);
@@ -263,7 +341,6 @@ public abstract class BaseIjkVideoView extends FrameLayout {
             mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
             mMediaPlayer.setOnSeekCompleteListener(mSeekCompleteListener);
             mMediaPlayer.setOnTimedTextListener(mOnTimedTextListener);
-            mCurrentBufferPercentage = 0;
             String scheme = mUri.getScheme();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                     mSettings.getUsingMediaDataSource() &&
@@ -448,6 +525,16 @@ public abstract class BaseIjkVideoView extends FrameLayout {
         mTargetState = STATE_PLAYING;
     }
 
+    public void pause() {
+        if (isInPlaybackState()) {
+            if (mMediaPlayer.isPlaying()) {
+                mMediaPlayer.pause();
+                mCurrentState = STATE_PAUSED;
+            }
+        }
+        mTargetState = STATE_PAUSED;
+    }
+
     public int getCurrentPosition() {
         if (isInPlaybackState()) {
             return (int) mMediaPlayer.getCurrentPosition();
@@ -455,7 +542,15 @@ public abstract class BaseIjkVideoView extends FrameLayout {
         return 0;
     }
 
-    private boolean isInPlaybackState() {
+    public int getDuration() {
+        if (isInPlaybackState()) {
+            return (int) mMediaPlayer.getDuration();
+        }
+
+        return -1;
+    }
+
+    protected boolean isInPlaybackState() {
         return (mMediaPlayer != null &&
                 mCurrentState != STATE_ERROR &&
                 mCurrentState != STATE_IDLE &&
@@ -606,12 +701,18 @@ public abstract class BaseIjkVideoView extends FrameLayout {
     //region Play Status Callback Listener
 
     private long mPrepareEndTime = 0;
+
     private IMediaPlayer.OnPreparedListener mOnPreparedListener;
+    public void setmOnPreparedListener(IMediaPlayer.OnPreparedListener mOnPreparedListener) {
+        this.mOnPreparedListener = mOnPreparedListener;
+    }
 
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
         public void onPrepared(IMediaPlayer mp) {
             mPrepareEndTime = System.currentTimeMillis();
             mCurrentState = STATE_PREPARED;
+
+            setTotalProgress();
 
             if (mOnPreparedListener != null) {
                 mOnPreparedListener.onPrepared(mMediaPlayer);
@@ -625,8 +726,6 @@ public abstract class BaseIjkVideoView extends FrameLayout {
                 seekTo(seekToPosition);
             }
             if (mVideoWidth != 0 && mVideoHeight != 0) {
-                //LogUtil.i("@@@@", "video size: " + mVideoWidth +"/"+ mVideoHeight);
-                // REMOVED: getHolder().setFixedSize(mVideoWidth, mVideoHeight);
                 if (mRenderView != null) {
                     mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
                     mRenderView.setVideoSampleAspectRatio(mVideoSarNum, mVideoSarDen);
@@ -796,11 +895,10 @@ public abstract class BaseIjkVideoView extends FrameLayout {
                 }
             };
 
-    private int mCurrentBufferPercentage;
     private IMediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
             new IMediaPlayer.OnBufferingUpdateListener() {
                 public void onBufferingUpdate(IMediaPlayer mp, int percent) {
-                    mCurrentBufferPercentage = percent;
+                    setBufferProgress(percent);
                 }
             };
 
