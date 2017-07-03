@@ -136,7 +136,7 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
 
     protected abstract void playCompleted();  //播放结束回调
 
-    protected abstract void playError();  //播放错误回到
+    protected abstract void playError();  //播放错误回调
 
     //endregion
 

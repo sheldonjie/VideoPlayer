@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoView = (StandardIjkVideoView)findViewById(R.id.video_view);
 
-        mVideoPath = "http://video.jiecao.fm/8/16/%E4%BF%AF%E5%8D%A7%E6%92%91.mp4";
+        mVideoPath = "https://html5demos.com/assets/dizzy.mp4";
 
 //        mVideoPath = "http://ivi.bupt.edu.cn/hls/chchd.m3u8";
 

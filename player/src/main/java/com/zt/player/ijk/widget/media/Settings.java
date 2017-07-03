@@ -45,7 +45,7 @@ public class Settings {
 
     public int getPlayer() {
         String key = mAppContext.getString(R.string.pref_key_player);
-        String value = mSharedPreferences.getString(key, "");
+        String value = mSharedPreferences.getString(key, "1");
         try {
             return Integer.valueOf(value).intValue();
         } catch (NumberFormatException e) {
