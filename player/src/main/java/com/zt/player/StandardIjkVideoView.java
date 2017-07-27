@@ -28,8 +28,9 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
     private ViewGroup topContainer;
     private TextView totalTimeText;
     private TextView currentTimeText;
-    private ProgressBar bottomProgressbar;
+    private ProgressBar bottomProgressbar, loadingProgressBar;
     private SeekBar seekBar;
+    private ImageView thumbView;
 
     public StandardIjkVideoView(@NonNull Context context) {
         super(context);
@@ -59,6 +60,8 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
         currentTimeText = (TextView) findViewById(R.id.current);
         bottomProgressbar = (ProgressBar) findViewById(R.id.bottom_progressbar);
         seekBar = (SeekBar) findViewById(R.id.progress);
+        thumbView = (ImageView) findViewById(R.id.thumb);
+        loadingProgressBar = (ProgressBar) findViewById(R.id.loading);
     }
 
     @Override
@@ -186,13 +189,13 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
 
 
     private void startControlViewTimer() {
-        cancelDismissControlViewTimer();
+        cancelControlViewTimer();
         mControlViewTimer = new Timer();
         mControlViewTimerTask = new ControlViewTimerTask();
         mControlViewTimer.schedule(mControlViewTimerTask, 2500);
     }
 
-    private void cancelDismissControlViewTimer() {
+    private void cancelControlViewTimer() {
         if (mControlViewTimer != null) {
             mControlViewTimer.cancel();
         }
@@ -210,9 +213,10 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
                     ((Activity) getContext()).runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            bottomContainer.setVisibility(View.INVISIBLE);
-                            topContainer.setVisibility(View.INVISIBLE);
-                            startButton.setVisibility(View.INVISIBLE);
+                            bottomContainer.setVisibility(View.GONE);
+                            topContainer.setVisibility(View.GONE);
+                            startButton.setVisibility(View.GONE);
+                            bottomProgressbar.setVisibility(View.VISIBLE);
                         }
                     });
                 }
@@ -228,6 +232,71 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
         }
     }
 
+
+    //endregion
+
+
+    @Override
+    protected void changeUIWithState(int currentState) {
+        super.changeUIWithState(currentState);
+        switch (currentState) {
+            case STATE_IDLE:
+                changeUIWithIdle();
+                break;
+            case STATE_PREPARING:
+                changeUIWithPreparing();
+                startControlViewTimer();
+                break;
+            case STATE_PLAYING:
+                changeUIWithPlaying();
+                startControlViewTimer();
+                break;
+            case STATE_PAUSED:
+                changeUIWithPause();
+                cancelControlViewTimer();
+                break;
+        }
+
+    }
+
+    //region 各种状态下UI的显示风格
+
+    private void changeUIWithIdle() {
+        setViewsVisible(View.VISIBLE, View.GONE, View.VISIBLE, View.GONE, View.VISIBLE, View.GONE);
+        updateStartImage();
+    }
+
+    private void changeUIWithPreparing() {
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.GONE, View.VISIBLE, View.GONE, View.GONE);
+    }
+
+    private void changeUIWithPlaying() {
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+    }
+
+    private void changeUIWithPause() {
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+    }
+
+    private void updateStartImage() {
+        if (mCurrentState == STATE_PLAYING) {
+            startButton.setImageResource(R.drawable.ct_click_pause_selector);
+        } else if (mCurrentState == STATE_ERROR) {
+
+        } else {
+            startButton.setImageResource(R.drawable.ct_click_play_selector);
+        }
+    }
+
+
+    private void setViewsVisible(int topConVisi, int bottomConVisi, int startBtnVisi, int loadingProVisi, int thumbVisi, int bottomProVisi) {
+        topContainer.setVisibility(topConVisi);
+        bottomContainer.setVisibility(bottomConVisi);
+        startButton.setVisibility(startBtnVisi);
+        loadingProgressBar.setVisibility(loadingProVisi);
+        thumbView.setVisibility(thumbVisi);
+        bottomProgressbar.setVisibility(bottomProVisi);
+    }
 
     //endregion
 
