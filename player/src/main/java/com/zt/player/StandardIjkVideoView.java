@@ -120,7 +120,8 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
         cancelProgressTimer();
     }
 
-    private void cancelProgressTimer() {
+    @Override
+    protected void cancelProgressTimer() {
         if (updateProgressTimer != null) {
             updateProgressTimer.cancel();
         }

@@ -130,9 +130,11 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
 
     protected abstract void setBufferProgress(int bufferProgress); //显示缓冲百分比
 
-    protected abstract void resetProgressAndTime();  //重置进度条时间，当前时间，总时间
+    protected void resetProgressAndTime() {} //重置进度条时间，当前时间，总时间
 
-    protected abstract void startProgressTimer();   //开始进度条任务
+    protected void startProgressTimer() {} //开始进度条任务
+
+    protected void cancelProgressTimer(){}  //取消进度条任务
 
     protected abstract void playCompleted();  //播放结束回调
 
@@ -214,9 +216,8 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
         setFocusableInTouchMode(true);
         requestFocus();
 
-        mCurrentState = STATE_IDLE;
         mTargetState = STATE_IDLE;
-
+        changeUIWithState(STATE_IDLE);
     }
 
 
@@ -368,16 +369,16 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
 
             // we don't set the target state here either, but preserve the
             // target state that was there before.
-            mCurrentState = STATE_PREPARING;
+            changeUIWithState(STATE_PREPARING);
 //            attachMediaController();
         } catch (IOException ex) {
             LogUtil.w(TAG, "Unable to open content: " + mUri, ex);
-            mCurrentState = STATE_ERROR;
+            changeUIWithState(STATE_ERROR);
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
         } catch (IllegalArgumentException ex) {
             LogUtil.w(TAG, "Unable to open content: " + mUri, ex);
-            mCurrentState = STATE_ERROR;
+            changeUIWithState(STATE_ERROR);
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
         } finally {
@@ -500,8 +501,8 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
             mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
-            mCurrentState = STATE_IDLE;
-            if (cleartargetstate) {
+            changeUIWithState(STATE_IDLE);
+            if(cleartargetstate) {
                 mTargetState = STATE_IDLE;
             }
             AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
@@ -524,7 +525,7 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
     public void start() {
         if (isInPlaybackState()) {
             mMediaPlayer.start();
-            mCurrentState = STATE_PLAYING;
+            changeUIWithState(STATE_PLAYING);
         }
         mTargetState = STATE_PLAYING;
     }
@@ -533,7 +534,7 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
         if (isInPlaybackState()) {
             if (mMediaPlayer.isPlaying()) {
                 mMediaPlayer.pause();
-                mCurrentState = STATE_PAUSED;
+                changeUIWithState(STATE_PAUSED);
             }
         }
         mTargetState = STATE_PAUSED;
@@ -707,16 +708,18 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
     private long mPrepareEndTime = 0;
 
     private IMediaPlayer.OnPreparedListener mOnPreparedListener;
+
     public void setmOnPreparedListener(IMediaPlayer.OnPreparedListener mOnPreparedListener) {
         this.mOnPreparedListener = mOnPreparedListener;
     }
 
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
         public void onPrepared(IMediaPlayer mp) {
-            mPrepareEndTime = System.currentTimeMillis();
-            mCurrentState = STATE_PREPARED;
 
-            resetProgressAndTime();
+            mPrepareEndTime = System.currentTimeMillis();
+
+            changeUIWithState(STATE_PREPARED);
+
             startProgressTimer();
 
             if (mOnPreparedListener != null) {
@@ -784,7 +787,7 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
     private IMediaPlayer.OnCompletionListener mCompletionListener =
             new IMediaPlayer.OnCompletionListener() {
                 public void onCompletion(IMediaPlayer mp) {
-                    mCurrentState = STATE_PLAYBACK_COMPLETED;
+                    changeUIWithState(STATE_PLAYBACK_COMPLETED);
                     mTargetState = STATE_PLAYBACK_COMPLETED;
                     if (mOnCompletionListener != null) {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
@@ -798,7 +801,8 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
             new IMediaPlayer.OnErrorListener() {
                 public boolean onError(IMediaPlayer mp, int framework_err, int impl_err) {
                     LogUtil.d(TAG, "Error: " + framework_err + "," + impl_err);
-                    mCurrentState = STATE_ERROR;
+
+                    changeUIWithState(STATE_ERROR);
                     mTargetState = STATE_ERROR;
 
                     playError();
@@ -924,4 +928,25 @@ public abstract class BaseIjkVideoView extends FrameLayout implements View.OnCli
 
     //endregion
 
+    protected void changeUIWithState(int currentState) {
+        this.mCurrentState = currentState;
+        switch (mCurrentState) {
+            case STATE_IDLE:
+                cancelProgressTimer();
+                break;
+            case STATE_PREPARING:
+                resetProgressAndTime();
+                break;
+            case STATE_PLAYING:
+            case STATE_PAUSED:
+                startProgressTimer();
+                break;
+            case STATE_ERROR:
+                cancelProgressTimer();
+                break;
+            case STATE_PLAYBACK_COMPLETED:
+                cancelProgressTimer();
+                break;
+        }
+    }
 }
