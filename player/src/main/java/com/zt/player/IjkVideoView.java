@@ -448,6 +448,17 @@ public abstract class IjkVideoView extends FrameLayout {
     }
 
     public void start() {
+        int allowState = getAllowPlayState();
+
+        if(allowState == PLAY_DISALLOW) {
+            return;
+        }
+
+        if(allowState == PLAY_UI_DISALLOW) {
+            showDisallowDialog();
+            return;
+        }
+
         if (isInPlaybackState()) {
             mMediaPlayer.start();
             changeUIWithState(STATE_PLAYING);
@@ -850,9 +861,18 @@ public abstract class IjkVideoView extends FrameLayout {
 
     //region custom layout id
 
+    public static final int PLAY_WIFI_ALLOW = 0;
+    public static final int PLAY_DATA_ALLOW = 1;
+    public static final int PLAY_DISALLOW = 2;
+    public static final int PLAY_UI_DISALLOW = 3;
+
     protected abstract int getLayoutId();   //布局ID
 
     protected abstract int getSurfaceContainerId();  //布局中视频区域ID
+
+    protected abstract int getAllowPlayState(); //拦截播放，0表示WIFI下不拦截，直接播放， 1表示数据流量下，不拦截直接播放，2表示拦截不播放，3 表示UI拦截
+
+    protected abstract void showDisallowDialog();  //拦截提示对话框
 
     //endregion
 

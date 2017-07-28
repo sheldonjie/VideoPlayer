@@ -1,7 +1,9 @@
 package com.zt.player;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -32,6 +34,10 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
     private ProgressBar bottomProgressbar, loadingProgressBar;
     private SeekBar seekBar;
     private ImageView thumbView;
+
+    private int allowPlayState = IjkVideoView.PLAY_UI_DISALLOW;
+
+    private boolean isWifiTipDialogShowed;
 
     public StandardIjkVideoView(@NonNull Context context) {
         super(context);
@@ -77,6 +83,47 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
     }
 
     @Override
+    protected int getAllowPlayState() {
+        if (CTUtils.isWifiConnected(getContext())) {
+            allowPlayState = IjkVideoView.PLAY_WIFI_ALLOW;
+        } else if (allowPlayState != IjkVideoView.PLAY_DATA_ALLOW) {
+            allowPlayState = IjkVideoView.PLAY_UI_DISALLOW;
+        }
+        return allowPlayState;
+    }
+
+    @Override
+    protected void showDisallowDialog() {
+
+        if (isWifiTipDialogShowed) {
+            return;
+        }
+
+        isWifiTipDialogShowed = true;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setMessage(getResources().getString(R.string.tips_not_wifi));
+        builder.setPositiveButton(getResources().getString(R.string.tips_not_wifi_confirm), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                isWifiTipDialogShowed = false;
+                allowPlayState = IjkVideoView.PLAY_DATA_ALLOW;
+                start();
+            }
+        });
+        builder.setNegativeButton(getResources().getString(R.string.tips_not_wifi_cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                isWifiTipDialogShowed = false;
+                allowPlayState = IjkVideoView.PLAY_DISALLOW;
+            }
+        });
+        builder.create().show();
+    }
+
+    @Override
     protected int getPlayBtnId() {
         return R.id.start;
     }
@@ -84,6 +131,11 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
     @Override
     protected int getBackBtnId() {
         return R.id.back;
+    }
+
+    @Override
+    protected int getFullScreenBtnId() {
+        return R.id.fullscreen;
     }
 
     @Override
@@ -146,7 +198,7 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
             vpup.requestDisallowInterceptTouchEvent(false);
             vpup = vpup.getParent();
         }
-        if(mCurrentState != STATE_PLAYING && mCurrentState != STATE_PAUSED) {
+        if (mCurrentState != STATE_PLAYING && mCurrentState != STATE_PAUSED) {
             return;
         }
         int time = seekBar.getProgress() * getDuration() / 100;

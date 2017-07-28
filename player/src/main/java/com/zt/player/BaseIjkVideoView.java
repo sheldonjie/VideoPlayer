@@ -46,6 +46,8 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     protected abstract int getBackBtnId();   //返回按钮ID
 
+    protected abstract int getFullScreenBtnId(); //
+
     protected void resetProgressAndTime() {
     } //重置进度条时间，当前时间，总时间
 
@@ -61,6 +63,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     private View playBtn;
     private View backBtn;
+    private View fullScreenBtn;
 
     private boolean isFullScreen;
 
@@ -73,27 +76,44 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
         backBtn = findViewById(getBackBtnId());
         backBtn.setOnClickListener(this);
+
+        fullScreenBtn = findViewById(R.id.fullscreen);
+        fullScreenBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         int id = v.getId();
         if (id == getPlayBtnId()) {
-            if(mCurrentState == STATE_IDLE) {
-                prepareToPlay();
-            } else if (isPlaying()) {
-                pause();
-            } else {
-                start();
-            }
+            handleStartBtnClick();
         } else if (id == getBackBtnId()) {
             if (isFullScreen) {
-
+                exitFullScreen();
             } else {
                 exitCurrenActivity();
             }
         } else if (id == getSurfaceContainerId()) {
             surfaceContainerClick();
+        } else if (id == getFullScreenBtnId()) {
+            handleFullScreenBtnClick();
+        }
+    }
+
+    private void handleStartBtnClick() {
+        if (mCurrentState == STATE_IDLE) {
+            prepareToPlay();
+        } else if (isPlaying()) {
+            pause();
+        } else {
+            start();
+        }
+    }
+
+    private void handleFullScreenBtnClick() {
+        if (isFullScreen) {
+            exitFullScreen();
+        } else {
+            startFullScreen();
         }
     }
 
@@ -103,10 +123,12 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
     }
 
     protected void exitFullScreen() {
+        isFullScreen = false;
 
     }
 
     protected void startFullScreen() {
+        isFullScreen = true;
 
     }
 
