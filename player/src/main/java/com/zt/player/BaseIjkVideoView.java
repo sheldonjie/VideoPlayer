@@ -1,9 +1,11 @@
 package com.zt.player;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
@@ -14,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.WindowManager;
 
 /**
  * Created by zhouteng on 2017/5/22.
@@ -133,9 +136,14 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     protected void exitFullScreen() {
         isFullScreen = false;
-        if(fullScreenVideoDialog != null) {
+
+        Activity activity = CTUtils.getActivity(getContext());
+        toggledFullscreen(activity, false);
+
+        if (fullScreenVideoDialog != null) {
             fullScreenVideoDialog.dismiss();
         }
+
         removePlayerFromParent();
 
         ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(originViewWidth, originViewHeight);
@@ -153,6 +161,9 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         viewParent = getParent();
         originViewWidth = getWidth();
         originViewHeight = getHeight();
+
+        Activity activity = CTUtils.getActivity(getContext());
+        toggledFullscreen(activity, true);
 
         removePlayerFromParent();
 
@@ -173,6 +184,38 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
             }
         });
         fullScreenVideoDialog.show();
+
+
+    }
+
+    private void toggledFullscreen(Activity mActivity, boolean fullscreen) {
+
+        if (mActivity == null) {
+            return;
+        }
+
+        if (fullscreen) {
+            WindowManager.LayoutParams attrs = mActivity.getWindow().getAttributes();
+            attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            attrs.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+            mActivity.getWindow().setAttributes(attrs);
+            if (android.os.Build.VERSION.SDK_INT >= 14) {
+                //noinspection all
+                mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
+            }
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        } else {
+            WindowManager.LayoutParams attrs = mActivity.getWindow().getAttributes();
+            attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            attrs.flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+            mActivity.getWindow().setAttributes(attrs);
+            if (android.os.Build.VERSION.SDK_INT >= 14) {
+                //noinspection all
+                mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+            }
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
     }
 
     private void removePlayerFromParent() {
