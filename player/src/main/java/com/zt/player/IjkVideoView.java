@@ -175,7 +175,7 @@ public abstract class IjkVideoView extends FrameLayout {
         mUri = uri;
         mHeaders = headers;
         mSeekWhenPrepared = 0;
-        openVideo();
+//        openVideo();
         requestLayout();
         invalidate();
     }
@@ -184,9 +184,11 @@ public abstract class IjkVideoView extends FrameLayout {
 
     @TargetApi(Build.VERSION_CODES.M)
     private void openVideo() {
+
         if (mUri == null || mSurfaceHolder == null) {
             return;
         }
+
         release(false);
         AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
         am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -411,6 +413,11 @@ public abstract class IjkVideoView extends FrameLayout {
 
     //region Play Action Control
 
+    public void prepareToPlay() {
+        mTargetState = STATE_PLAYING;
+        openVideo();
+    }
+
     /*
      * release the media player in any state
      */
@@ -502,6 +509,7 @@ public abstract class IjkVideoView extends FrameLayout {
     }
 
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
+
         public void onPrepared(IMediaPlayer mp) {
 
             mPrepareEndTime = System.currentTimeMillis();
@@ -821,8 +829,8 @@ public abstract class IjkVideoView extends FrameLayout {
             mSurfaceHolder = holder;
             if (mMediaPlayer != null)
                 bindSurfaceHolder(mMediaPlayer, holder);
-            else
-                openVideo();
+//            else
+//                openVideo();
         }
 
         @Override

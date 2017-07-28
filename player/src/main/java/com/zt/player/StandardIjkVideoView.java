@@ -9,6 +9,7 @@ import android.support.annotation.StyleRes;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -21,7 +22,7 @@ import java.util.TimerTask;
  * Created by zhouteng on 2017/5/22.
  */
 
-public class StandardIjkVideoView extends BaseIjkVideoView {
+public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.OnSeekBarChangeListener {
 
     private ImageView startButton;
     private ViewGroup bottomContainer;
@@ -60,6 +61,7 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
         currentTimeText = (TextView) findViewById(R.id.current);
         bottomProgressbar = (ProgressBar) findViewById(R.id.bottom_progressbar);
         seekBar = (SeekBar) findViewById(R.id.progress);
+        seekBar.setOnSeekBarChangeListener(this);
         thumbView = (ImageView) findViewById(R.id.thumb);
         loadingProgressBar = (ProgressBar) findViewById(R.id.loading);
     }
@@ -121,6 +123,36 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
         }
     }
 
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        cancelProgressTimer();
+        ViewParent vpdown = getParent();
+        while (vpdown != null) {
+            vpdown.requestDisallowInterceptTouchEvent(true);
+            vpdown = vpdown.getParent();
+        }
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        startProgressTimer();
+        ViewParent vpup = getParent();
+        while (vpup != null) {
+            vpup.requestDisallowInterceptTouchEvent(false);
+            vpup = vpup.getParent();
+        }
+        if(mCurrentState != STATE_PLAYING && mCurrentState != STATE_PAUSED) {
+            return;
+        }
+        int time = seekBar.getProgress() * getDuration() / 100;
+        seekTo(time);
+    }
+
     private class ProgressTimerTask extends TimerTask {
         @Override
         public void run() {
@@ -148,21 +180,7 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
         if (position != 0) currentTimeText.setText(CTUtils.stringForTime(position));
         totalTimeText.setText(CTUtils.stringForTime(duration));
     }
-
     //endregion
-
-    @Override
-    protected void playBtnClick() {
-        startButton.setImageResource(R.drawable.ct_click_pause_selector);
-        startButton.setVisibility(View.INVISIBLE);
-        topContainer.setVisibility(View.INVISIBLE);
-        bottomContainer.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    protected void pauseBtnClick() {
-        startButton.setImageResource(R.drawable.ct_click_play_selector);
-    }
 
     @Override
     protected void surfaceContainerClick() {
@@ -271,10 +289,12 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
 
     private void changeUIWithPlaying() {
         setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+        updateStartImage();
     }
 
     private void changeUIWithPause() {
         setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+        updateStartImage();
     }
 
     private void changeUIWithError() {

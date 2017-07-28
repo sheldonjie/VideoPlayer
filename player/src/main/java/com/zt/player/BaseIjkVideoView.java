@@ -44,19 +44,16 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     protected abstract int getPlayBtnId();   //布局中播放按钮ID
 
-    protected abstract void playBtnClick();    //播放按钮按下时，UI回调
-
-    protected abstract void pauseBtnClick();   //暂停按钮按下时,UI回调
-
     protected abstract int getBackBtnId();   //返回按钮ID
 
-    protected abstract void setBufferProgress(int bufferProgress); //显示缓冲百分比
+    protected void resetProgressAndTime() {
+    } //重置进度条时间，当前时间，总时间
 
-    protected void resetProgressAndTime() {} //重置进度条时间，当前时间，总时间
+    protected void startProgressTimer() {
+    } //开始进度条任务
 
-    protected void startProgressTimer() {} //开始进度条任务
-
-    protected void cancelProgressTimer(){}  //取消进度条任务
+    protected void cancelProgressTimer() {
+    }  //取消进度条任务
 
     //endregion
 
@@ -82,12 +79,12 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
     public void onClick(View v) {
         int id = v.getId();
         if (id == getPlayBtnId()) {
-            if (isPlaying()) {
+            if(mCurrentState == STATE_IDLE) {
+                prepareToPlay();
+            } else if (isPlaying()) {
                 pause();
-                pauseBtnClick();
             } else {
                 start();
-                playBtnClick();
             }
         } else if (id == getBackBtnId()) {
             if (isFullScreen) {
