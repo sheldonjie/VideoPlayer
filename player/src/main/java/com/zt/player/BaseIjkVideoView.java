@@ -1,14 +1,19 @@
 package com.zt.player;
 
 import android.annotation.TargetApi;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Build;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StyleRes;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 
 /**
  * Created by zhouteng on 2017/5/22.
@@ -66,6 +71,10 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
     private View fullScreenBtn;
 
     private boolean isFullScreen;
+    private Dialog fullScreenVideoDialog;
+    private ViewParent viewParent;
+    private int originViewWidth;
+    private int originViewHeight;
 
     private final void initView(Context context) {
 
@@ -109,6 +118,11 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         }
     }
 
+    protected void exitCurrenActivity() {
+        release(true);
+        CTUtils.exitActivity(getContext());
+    }
+
     private void handleFullScreenBtnClick() {
         if (isFullScreen) {
             exitFullScreen();
@@ -117,20 +131,57 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         }
     }
 
-    protected void exitCurrenActivity() {
-        release(true);
-        CTUtils.exitActivity(getContext());
-    }
-
     protected void exitFullScreen() {
         isFullScreen = false;
+        if(fullScreenVideoDialog != null) {
+            fullScreenVideoDialog.dismiss();
+        }
+        removePlayerFromParent();
 
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(originViewWidth, originViewHeight);
+        setLayoutParams(layoutParams);
+
+        if (viewParent != null) {
+            ((ViewGroup) viewParent).addView(this);
+        }
     }
 
     protected void startFullScreen() {
+
         isFullScreen = true;
 
+        viewParent = getParent();
+        originViewWidth = getWidth();
+        originViewHeight = getHeight();
+
+        removePlayerFromParent();
+
+        int screenWidth = CTUtils.getScreenWidth(getContext());
+        int screenHeight = CTUtils.getScreenHeight(getContext());
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(screenWidth, screenHeight);
+        setLayoutParams(layoutParams);
+
+        fullScreenVideoDialog = new Dialog(getContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        fullScreenVideoDialog.setContentView(this);
+        fullScreenVideoDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    exitFullScreen();
+                }
+                return false;
+            }
+        });
+        fullScreenVideoDialog.show();
     }
+
+    private void removePlayerFromParent() {
+        ViewParent parent = getParent();
+        if (parent != null) {
+            ((ViewGroup) parent).removeView(this);
+        }
+    }
+
 
     //endregion
 
