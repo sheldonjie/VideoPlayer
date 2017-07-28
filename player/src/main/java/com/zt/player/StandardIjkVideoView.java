@@ -112,18 +112,6 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
     }
 
     @Override
-    protected void playCompleted() {
-        cancelProgressTimer();
-        seekBar.setProgress(100);
-        currentTimeText.setText(totalTimeText.getText());
-    }
-
-    @Override
-    protected void playError() {
-        cancelProgressTimer();
-    }
-
-    @Override
     protected void cancelProgressTimer() {
         if (updateProgressTimer != null) {
             updateProgressTimer.cancel();
@@ -240,6 +228,7 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
     protected void changeUIWithState(int currentState) {
         super.changeUIWithState(currentState);
         switch (currentState) {
+            case STATE_PREPARED:
             case STATE_IDLE:
                 changeUIWithIdle();
                 break;
@@ -254,6 +243,16 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
             case STATE_PAUSED:
                 changeUIWithPause();
                 cancelControlViewTimer();
+                break;
+            case STATE_ERROR:
+                changeUIWithError();
+                break;
+            case STATE_PLAYBACK_COMPLETED:
+                changeUIWithComplete();
+                cancelControlViewTimer();
+                bottomProgressbar.setProgress(100);
+                seekBar.setProgress(100);
+                currentTimeText.setText(totalTimeText.getText());
                 break;
         }
 
@@ -276,6 +275,14 @@ public class StandardIjkVideoView extends BaseIjkVideoView {
 
     private void changeUIWithPause() {
         setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+    }
+
+    private void changeUIWithError() {
+        setViewsVisible(View.GONE, View.GONE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+    }
+
+    private void changeUIWithComplete() {
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.VISIBLE, View.GONE);
     }
 
     private void updateStartImage() {

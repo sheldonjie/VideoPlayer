@@ -57,7 +57,7 @@ import tv.danmaku.ijk.media.player.misc.IMediaFormat;
 import tv.danmaku.ijk.media.player.misc.ITrackInfo;
 import tv.danmaku.ijk.media.player.misc.IjkMediaFormat;
 
-public class IjkVideoView extends FrameLayout implements MediaController.MediaPlayerControl {
+public class BilibiliIjkVideoView extends FrameLayout implements MediaController.MediaPlayerControl {
     private String TAG = "IjkVideoView";
     // settable by the client
     private Uri mUri;
@@ -124,23 +124,23 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
 //    private TextView subtitleDisplay;
 
-    public IjkVideoView(Context context) {
+    public BilibiliIjkVideoView(Context context) {
         super(context);
         initVideoView(context);
     }
 
-    public IjkVideoView(Context context, AttributeSet attrs) {
+    public BilibiliIjkVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initVideoView(context);
     }
 
-    public IjkVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public BilibiliIjkVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initVideoView(context);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public IjkVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public BilibiliIjkVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         initVideoView(context);
     }
