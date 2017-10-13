@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
@@ -16,7 +17,9 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 
 /**
  * Created by zhouteng on 2017/5/22.
@@ -24,6 +27,7 @@ import android.view.WindowManager;
 
 public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnClickListener {
 
+    public static final int FULLSCREEN_ID = 85597;
 
     public BaseIjkVideoView(@NonNull Context context) {
         super(context);
@@ -128,9 +132,11 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     private void handleFullScreenBtnClick() {
         if (isFullScreen) {
-            exitFullScreen();
+//            exitFullScreen();
+            exitWindowFullscreen();
         } else {
-            startFullScreen();
+//            startFullScreen();
+            startWindowFullscreen(getContext());
         }
     }
 
@@ -225,6 +231,88 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         }
     }
 
+    /**
+     * 获取com.android.internal.R.id.content
+     * @return
+     */
+    private ViewGroup getRootViewGroup() {
+        Activity activity = CTUtils.getActivity(getContext());
+        if(activity != null) {
+            return (ViewGroup) activity.findViewById(Window.ID_ANDROID_CONTENT);
+        }
+        return null;
+    }
+
+    private void exitWindowFullscreen() {
+
+        isFullScreen = false;
+
+        ViewGroup vp = getRootViewGroup();
+        vp.removeView((View) this.getParent());
+        removePlayerFromParent();
+
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(originViewWidth, originViewHeight);
+        setLayoutParams(layoutParams);
+
+        if (viewParent != null) {
+            ((ViewGroup) viewParent).addView(this);
+        }
+    }
+
+    private void startWindowFullscreen(final Context context) {
+
+        isFullScreen = true;
+
+        originViewWidth = getWidth();
+        originViewHeight = getHeight();
+
+        CTUtils.hideSupportActionBar(context,true,true);
+
+        viewParent = getParent();
+
+        ViewGroup vp = getRootViewGroup();
+
+        removePlayerFromParent();
+
+        //处理暂停的逻辑
+        pauseFullCoverLogic();
+
+        final LayoutParams lpParent = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        final FrameLayout frameLayout = new FrameLayout(context);
+        frameLayout.setBackgroundColor(Color.BLACK);
+
+        LayoutParams lp = new LayoutParams(getWidth(), getHeight());
+        frameLayout.addView(this, lp);
+        vp.addView(frameLayout, lpParent);
+    }
+
+    /**
+     * 全屏的暂停的时候返回页面不黑色
+     */
+    private void pauseFullCoverLogic() {
+
+    }
+
+
+        /**
+         * 隐藏导航栏
+         * @param context
+         */
+    public static void hideNavKey(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            //       设置屏幕始终在前面，不然点击鼠标，重新出现虚拟按键
+            ((Activity) context).getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav
+                            // bar
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE);
+        } else {
+            ((Activity) context).getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav
+            );
+        }
+    }
 
     //endregion
 

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
 import android.view.WindowManager;
@@ -18,12 +20,16 @@ import java.util.Locale;
 public class CTUtils {
 
     public static Activity getActivity(Context context) {
-        if (context == null) return null;
+
+        if (context == null) {
+            return null;
+        }
+
         if (context instanceof AppCompatActivity) {
             return (AppCompatActivity) context;
         } else if (context instanceof ContextThemeWrapper) {
             return getActivity(((ContextThemeWrapper) context).getBaseContext());
-        } else if(context instanceof Activity) {
+        } else if (context instanceof Activity) {
             return (Activity) context;
         }
         return null;
@@ -31,7 +37,7 @@ public class CTUtils {
 
     public static void exitActivity(Context context) {
         Activity activity = CTUtils.getActivity(context);
-        if(activity != null) {
+        if (activity != null) {
             activity.finish();
         }
     }
@@ -67,6 +73,48 @@ public class CTUtils {
     public static int getScreenHeight(Context context) {
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         return windowManager.getDefaultDisplay().getHeight();
+    }
+
+    /**
+     * 获取状态栏高度
+     *
+     * @param context 上下文
+     * @return 状态栏高度
+     */
+    public static int getStatusBarHeight(Context context) {
+        int result = 0;
+        int resourceId = context.getResources()
+                .getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
+
+    public static void hideSupportActionBar(Context context, boolean actionBar, boolean statusBar) {
+        if (actionBar) {
+            Activity appCompatActivity = CTUtils.getActivity(context);
+            if (appCompatActivity != null && appCompatActivity instanceof AppCompatActivity) {
+                ActionBar ab = ((AppCompatActivity) appCompatActivity).getSupportActionBar();
+                if (ab != null) {
+                    ab.setShowHideAnimationEnabled(false);
+                    ab.hide();
+                }
+            }
+        }
+        if (statusBar) {
+            if (context instanceof FragmentActivity) {
+                FragmentActivity fragmentActivity = (FragmentActivity) context;
+                fragmentActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            } else {
+                Activity activity = CTUtils.getActivity(context);
+                if (activity != null) {
+                    activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                            WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                }
+            }
+        }
     }
 
 }
