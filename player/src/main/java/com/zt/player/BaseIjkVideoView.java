@@ -4,8 +4,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.AttrRes;
@@ -13,12 +11,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StyleRes;
 import android.util.AttributeSet;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 /**
@@ -27,7 +23,7 @@ import android.widget.FrameLayout;
 
 public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnClickListener {
 
-    public static final int FULLSCREEN_ID = 85597;
+    private int mSystemUiVisibility;
 
     //是否需要在利用window实现全屏幕的时候隐藏actionbar
     protected boolean mActionBar = false;
@@ -88,7 +84,6 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
     private View fullScreenBtn;
 
     private boolean isFullScreen;
-    private Dialog fullScreenVideoDialog;
     private ViewParent viewParent;
     private int originViewWidth;
     private int originViewHeight;
@@ -186,11 +181,14 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
         CTUtils.toggledFullscreen(getContext(),false);
 
+        CTUtils.showNavKey(getContext(),mSystemUiVisibility);
     }
 
     private void startWindowFullscreen(boolean mActionBar,boolean mStatusBar) {
 
         isFullScreen = true;
+
+        mSystemUiVisibility = ((Activity) getContext()).getWindow().getDecorView().getSystemUiVisibility();
 
         originViewWidth = getWidth();
         originViewHeight = getHeight();
@@ -219,6 +217,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         frameLayout.addView(this, lp);
         vp.addView(frameLayout, lpParent);
 
+        CTUtils.hideNavKey(getContext());
     }
 
     /**
@@ -227,28 +226,6 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
     private void pauseFullCoverLogic() {
 
     }
-
-
-        /**
-         * 隐藏导航栏
-         * @param context
-         */
-    public static void hideNavKey(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            //       设置屏幕始终在前面，不然点击鼠标，重新出现虚拟按键
-            ((Activity) context).getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav
-                            // bar
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE);
-        } else {
-            ((Activity) context).getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav
-            );
-        }
-    }
-
     //endregion
 
     protected void changeUIWithState(int currentState) {
