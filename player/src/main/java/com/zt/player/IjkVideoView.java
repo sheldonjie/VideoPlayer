@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -323,6 +324,16 @@ public abstract class IjkVideoView extends FrameLayout {
                 LogUtil.e(TAG, String.format(Locale.getDefault(), "invalid render %d\n", render));
                 break;
         }
+    }
+
+    protected Bitmap initCover() {
+        if(mRenderView != null && mRenderView instanceof TextureRenderView) {
+            TextureRenderView textureRenderView = (TextureRenderView) mRenderView;
+            Bitmap bitmap = Bitmap.createBitmap(
+                    textureRenderView.getSizeW(), textureRenderView.getSizeH(), Bitmap.Config.RGB_565);
+            return textureRenderView.getBitmap(bitmap);
+        }
+        return null;
     }
 
     public void setRenderView(IRenderView renderView) {

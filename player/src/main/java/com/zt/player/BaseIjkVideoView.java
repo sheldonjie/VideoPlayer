@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.AttrRes;
@@ -30,6 +31,9 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     //是否需要在利用window实现全屏幕的时候隐藏statusbar
     protected boolean mStatusBar = false;
+
+    //满屏填充暂停为徒
+    protected Bitmap mFullPauseBitmap;
 
     //region 构造函数
 
@@ -166,6 +170,8 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
         isFullScreen = false;
 
+        pauseFullCoverLogic();
+
         ViewGroup vp = getRootViewGroup();
         vp.removeView((View) this.getParent());
         removePlayerFromParent();
@@ -184,7 +190,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         CTUtils.showNavKey(getContext(),mSystemUiVisibility);
     }
 
-    private void startWindowFullscreen(boolean mActionBar,boolean mStatusBar) {
+    protected void startWindowFullscreen(boolean mActionBar,boolean mStatusBar) {
 
         isFullScreen = true;
 
@@ -196,6 +202,8 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         this.mActionBar = mActionBar;
         this.mStatusBar = mStatusBar;
 
+        pauseFullCoverLogic();
+
         CTUtils.hideSupportActionBar(getContext(),mActionBar,mStatusBar);
 
         CTUtils.toggledFullscreen(getContext(),true);
@@ -206,8 +214,6 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
         removePlayerFromParent();
 
-        //处理暂停的逻辑
-        pauseFullCoverLogic();
 
         final LayoutParams lpParent = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         final FrameLayout frameLayout = new FrameLayout(getContext());
@@ -224,7 +230,14 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
      * 全屏的暂停的时候返回页面不黑色
      */
     private void pauseFullCoverLogic() {
-
+        if(mCurrentState == STATE_PAUSED && (mFullPauseBitmap == null || mFullPauseBitmap.isRecycled())) {
+            try {
+                mFullPauseBitmap = initCover();
+            } catch (Exception e) {
+                e.printStackTrace();
+                mFullPauseBitmap = null;
+            }
+        }
     }
     //endregion
 

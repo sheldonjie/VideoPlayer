@@ -367,4 +367,12 @@ public class TextureRenderView extends TextureView implements IRenderView {
         super.onInitializeAccessibilityNodeInfo(info);
         info.setClassName(TextureRenderView.class.getName());
     }
+
+    public int getSizeH() {
+        return mMeasureHelper.getMeasuredHeight();
+    }
+
+    public int getSizeW() {
+        return mMeasureHelper.getMeasuredWidth();
+    }
 }
