@@ -2,12 +2,14 @@ package com.zt.player;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
+import android.view.View;
 import android.view.WindowManager;
 
 import java.util.Formatter;
@@ -115,6 +117,63 @@ public class CTUtils {
                 }
             }
         }
+    }
+
+    public static void showSupportActionBar(Context context, boolean actionBar, boolean statusBar) {
+        if (actionBar) {
+            Activity appCompatActivity = CTUtils.getActivity(context);
+            if (appCompatActivity != null && appCompatActivity instanceof AppCompatActivity) {
+                ActionBar ab = ((AppCompatActivity)appCompatActivity).getSupportActionBar();
+                if (ab != null) {
+                    ab.setShowHideAnimationEnabled(false);
+                    ab.show();
+                }
+            }
+        }
+
+        if (statusBar) {
+            if (context instanceof FragmentActivity) {
+                FragmentActivity fragmentActivity = (FragmentActivity) context;
+                fragmentActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            } else {
+                Activity activity = CTUtils.getActivity(context);
+                if(activity != null) {
+                    activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                }
+            }
+        }
+    }
+
+    public static void toggledFullscreen(Context mContext, boolean fullscreen) {
+
+        Activity mActivity = CTUtils.getActivity(mContext);
+
+        if (mActivity == null) {
+            return;
+        }
+
+        if (fullscreen) {
+            WindowManager.LayoutParams attrs = mActivity.getWindow().getAttributes();
+            attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            attrs.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+            mActivity.getWindow().setAttributes(attrs);
+            if (android.os.Build.VERSION.SDK_INT >= 14) {
+                //noinspection all
+                mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
+            }
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        } else {
+            WindowManager.LayoutParams attrs = mActivity.getWindow().getAttributes();
+            attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            attrs.flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+            mActivity.getWindow().setAttributes(attrs);
+            if (android.os.Build.VERSION.SDK_INT >= 14) {
+                //noinspection all
+                mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+            }
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
     }
 
 }

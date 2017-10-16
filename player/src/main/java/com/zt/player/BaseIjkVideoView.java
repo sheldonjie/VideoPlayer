@@ -29,6 +29,14 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     public static final int FULLSCREEN_ID = 85597;
 
+    //是否需要在利用window实现全屏幕的时候隐藏actionbar
+    protected boolean mActionBar = false;
+
+    //是否需要在利用window实现全屏幕的时候隐藏statusbar
+    protected boolean mStatusBar = false;
+
+    //region 构造函数
+
     public BaseIjkVideoView(@NonNull Context context) {
         super(context);
         initView(context);
@@ -49,6 +57,8 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         super(context, attrs, defStyleAttr, defStyleRes);
         initView(context);
     }
+
+    //endregion
 
     //region Custom LayoutId
 
@@ -104,7 +114,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
             handleStartBtnClick();
         } else if (id == getBackBtnId()) {
             if (isFullScreen) {
-                exitFullScreen();
+                exitWindowFullscreen();
             } else {
                 exitCurrenActivity();
             }
@@ -132,96 +142,10 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
     private void handleFullScreenBtnClick() {
         if (isFullScreen) {
-//            exitFullScreen();
             exitWindowFullscreen();
         } else {
-//            startFullScreen();
-            startWindowFullscreen(getContext());
+            startWindowFullscreen(true,true);
         }
-    }
-
-    protected void exitFullScreen() {
-        isFullScreen = false;
-
-        Activity activity = CTUtils.getActivity(getContext());
-        toggledFullscreen(activity, false);
-
-        if (fullScreenVideoDialog != null) {
-            fullScreenVideoDialog.dismiss();
-        }
-
-        removePlayerFromParent();
-
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(originViewWidth, originViewHeight);
-        setLayoutParams(layoutParams);
-
-        if (viewParent != null) {
-            ((ViewGroup) viewParent).addView(this);
-        }
-    }
-
-    protected void startFullScreen() {
-
-        isFullScreen = true;
-
-        viewParent = getParent();
-        originViewWidth = getWidth();
-        originViewHeight = getHeight();
-
-        Activity activity = CTUtils.getActivity(getContext());
-        toggledFullscreen(activity, true);
-
-        removePlayerFromParent();
-
-        int screenWidth = CTUtils.getScreenWidth(getContext());
-        int screenHeight = CTUtils.getScreenHeight(getContext());
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(screenWidth, screenHeight);
-        setLayoutParams(layoutParams);
-
-        fullScreenVideoDialog = new Dialog(getContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-        fullScreenVideoDialog.setContentView(this);
-        fullScreenVideoDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    exitFullScreen();
-                }
-                return false;
-            }
-        });
-        fullScreenVideoDialog.show();
-
-
-    }
-
-    private void toggledFullscreen(Activity mActivity, boolean fullscreen) {
-
-        if (mActivity == null) {
-            return;
-        }
-
-        if (fullscreen) {
-            WindowManager.LayoutParams attrs = mActivity.getWindow().getAttributes();
-            attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-            attrs.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-            mActivity.getWindow().setAttributes(attrs);
-            if (android.os.Build.VERSION.SDK_INT >= 14) {
-                //noinspection all
-                mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
-            }
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        } else {
-            WindowManager.LayoutParams attrs = mActivity.getWindow().getAttributes();
-            attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
-            attrs.flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-            mActivity.getWindow().setAttributes(attrs);
-            if (android.os.Build.VERSION.SDK_INT >= 14) {
-                //noinspection all
-                mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-            }
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
-
     }
 
     private void removePlayerFromParent() {
@@ -257,16 +181,26 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         if (viewParent != null) {
             ((ViewGroup) viewParent).addView(this);
         }
+
+        CTUtils.showSupportActionBar(getContext(),mActionBar,mStatusBar);
+
+        CTUtils.toggledFullscreen(getContext(),false);
+
     }
 
-    private void startWindowFullscreen(final Context context) {
+    private void startWindowFullscreen(boolean mActionBar,boolean mStatusBar) {
 
         isFullScreen = true;
 
         originViewWidth = getWidth();
         originViewHeight = getHeight();
 
-        CTUtils.hideSupportActionBar(context,true,true);
+        this.mActionBar = mActionBar;
+        this.mStatusBar = mStatusBar;
+
+        CTUtils.hideSupportActionBar(getContext(),mActionBar,mStatusBar);
+
+        CTUtils.toggledFullscreen(getContext(),true);
 
         viewParent = getParent();
 
@@ -278,12 +212,13 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         pauseFullCoverLogic();
 
         final LayoutParams lpParent = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        final FrameLayout frameLayout = new FrameLayout(context);
+        final FrameLayout frameLayout = new FrameLayout(getContext());
         frameLayout.setBackgroundColor(Color.BLACK);
 
-        LayoutParams lp = new LayoutParams(getWidth(), getHeight());
+        LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         frameLayout.addView(this, lp);
         vp.addView(frameLayout, lpParent);
+
     }
 
     /**
