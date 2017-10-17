@@ -386,6 +386,15 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
         }
     }
 
+    @Override
+    protected void exitWindowFullscreen() {
+        super.exitWindowFullscreen();
+        if(mCurrentState == STATE_PAUSED && mFullPauseBitmap != null && !mFullPauseBitmap.isRecycled()) {
+            thumbView.setVisibility(View.VISIBLE);
+            thumbView.setImageBitmap(mFullPauseBitmap);
+        }
+    }
+
     //endregion
 
 }

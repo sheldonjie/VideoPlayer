@@ -166,11 +166,17 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         return null;
     }
 
-    private void exitWindowFullscreen() {
+    protected void exitWindowFullscreen() {
 
         isFullScreen = false;
 
         pauseFullCoverLogic();
+
+        CTUtils.toggledFullscreen(getContext(),false);
+
+        CTUtils.showSupportActionBar(getContext(),mActionBar,mStatusBar);
+
+        CTUtils.showNavKey(getContext(),mSystemUiVisibility);
 
         ViewGroup vp = getRootViewGroup();
         vp.removeView((View) this.getParent());
@@ -182,12 +188,6 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         if (viewParent != null) {
             ((ViewGroup) viewParent).addView(this);
         }
-
-        CTUtils.showSupportActionBar(getContext(),mActionBar,mStatusBar);
-
-        CTUtils.toggledFullscreen(getContext(),false);
-
-        CTUtils.showNavKey(getContext(),mSystemUiVisibility);
     }
 
     protected void startWindowFullscreen(boolean mActionBar,boolean mStatusBar) {
@@ -230,7 +230,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
      * 全屏的暂停的时候返回页面不黑色
      */
     private void pauseFullCoverLogic() {
-        if(mCurrentState == STATE_PAUSED && (mFullPauseBitmap == null || mFullPauseBitmap.isRecycled())) {
+        if(mCurrentState == STATE_PAUSED) {
             try {
                 mFullPauseBitmap = initCover();
             } catch (Exception e) {
@@ -240,6 +240,13 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         }
     }
     //endregion
+
+    /**
+     * 返回键调用
+     */
+    public void onBackPressed() {
+        backBtn.performClick();
+    }
 
     protected void changeUIWithState(int currentState) {
         this.mCurrentState = currentState;

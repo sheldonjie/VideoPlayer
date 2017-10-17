@@ -38,4 +38,11 @@ public class MainActivity extends AppCompatActivity {
             mVideoView.setVideoPath(mVideoPath);
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        if(mVideoView != null) {
+            mVideoView.onBackPressed();
+        }
+    }
 }
