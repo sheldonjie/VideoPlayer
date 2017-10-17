@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,6 +17,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.zt.player.ijk.widget.media.TextureRenderView;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -381,8 +384,8 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
     protected void startWindowFullscreen(boolean mActionBar, boolean mStatusBar) {
         super.startWindowFullscreen(mActionBar, mStatusBar);
         if(mCurrentState == STATE_PAUSED && mFullPauseBitmap != null && !mFullPauseBitmap.isRecycled()) {
-            thumbView.setVisibility(View.VISIBLE);
-            thumbView.setImageBitmap(mFullPauseBitmap);
+//            thumbView.setVisibility(View.VISIBLE);
+//            thumbView.setImageBitmap(mFullPauseBitmap);
         }
     }
 
@@ -390,8 +393,8 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
     protected void exitWindowFullscreen() {
         super.exitWindowFullscreen();
         if(mCurrentState == STATE_PAUSED && mFullPauseBitmap != null && !mFullPauseBitmap.isRecycled()) {
-            thumbView.setVisibility(View.VISIBLE);
-            thumbView.setImageBitmap(mFullPauseBitmap);
+//            thumbView.setVisibility(View.VISIBLE);
+//            thumbView.setImageBitmap(mFullPauseBitmap);
         }
     }
 

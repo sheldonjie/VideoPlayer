@@ -2,7 +2,6 @@ package com.zt.player;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -260,6 +259,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
             case STATE_PLAYING:
             case STATE_PAUSED:
                 startProgressTimer();
+//                pauseFullCoverLogic();
                 break;
             case STATE_ERROR:
                 cancelProgressTimer();
@@ -268,5 +268,9 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
                 cancelProgressTimer();
                 break;
         }
+    }
+
+    public void onDestroy() {
+        release(true);
     }
 }

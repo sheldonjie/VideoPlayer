@@ -59,7 +59,7 @@ public abstract class IjkVideoView extends FrameLayout {
 
     private IMediaPlayer mMediaPlayer = null;
 
-    private IRenderView mRenderView;
+    protected IRenderView mRenderView;
     private IRenderView.ISurfaceHolder mSurfaceHolder = null;
 
     private int mVideoWidth;

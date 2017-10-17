@@ -126,9 +126,7 @@ public class TextureRenderView extends TextureView implements IRenderView {
         setMeasuredDimension(mMeasureHelper.getMeasuredWidth(), mMeasureHelper.getMeasuredHeight());
     }
 
-    //--------------------
-    // TextureViewHolder
-    //--------------------
+    //region TextureViewHolder
 
     public IRenderView.ISurfaceHolder getSurfaceHolder() {
         return new InternalSurfaceHolder(this, mSurfaceCallback.mSurfaceTexture, mSurfaceCallback);
@@ -196,9 +194,9 @@ public class TextureRenderView extends TextureView implements IRenderView {
         }
     }
 
-    //-------------------------
-    // SurfaceHolder.Callback
-    //-------------------------
+    //endregion
+
+    //region SurfaceHolder.Callback
 
     @Override
     public void addRenderCallback(IRenderCallback callback) {
@@ -351,6 +349,8 @@ public class TextureRenderView extends TextureView implements IRenderView {
             mDidDetachFromWindow = true;
         }
     }
+
+    //endregion
 
     //--------------------
     // Accessibility

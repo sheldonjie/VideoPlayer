@@ -45,4 +45,12 @@ public class MainActivity extends AppCompatActivity {
             mVideoView.onBackPressed();
         }
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mVideoView != null) {
+            mVideoView.onDestroy();
+        }
+    }
 }
