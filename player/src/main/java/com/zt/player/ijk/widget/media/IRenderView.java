@@ -64,6 +64,8 @@ public interface IRenderView {
 
         @Nullable
         SurfaceTexture getSurfaceTexture();
+
+        Surface getSurface();
     }
 
     interface IRenderCallback {

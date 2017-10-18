@@ -847,6 +847,7 @@ public abstract class IjkVideoView extends FrameLayout {
                 }
                 start();
             }
+            releasePauseCover();
         }
 
         @Override
@@ -902,7 +903,7 @@ public abstract class IjkVideoView extends FrameLayout {
             return;
         }
 
-        Surface mSurface = surfaceHolder.openSurface();
+        Surface mSurface = surfaceHolder.getSurface();
         TextureView mTextureView = (TextureView) surfaceHolder.getRenderView();
 
         if (mSurface != null && mSurface.isValid() && mFullPauseBitmap != null && !mFullPauseBitmap.isRecycled()) {
@@ -912,6 +913,18 @@ public abstract class IjkVideoView extends FrameLayout {
                 canvas.drawBitmap(mFullPauseBitmap, null, rectF, null);
                 mSurface.unlockCanvasAndPost(canvas);
             }
+        }
+    }
+
+    protected void releasePauseCover() {
+        try {
+            if (mCurrentState != STATE_PAUSED && mFullPauseBitmap != null
+                    && !mFullPauseBitmap.isRecycled()) {
+                mFullPauseBitmap.recycle();
+                mFullPauseBitmap = null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

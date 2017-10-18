@@ -168,6 +168,11 @@ public class SurfaceRenderView extends SurfaceView implements IRenderView {
                 return null;
             return mSurfaceHolder.getSurface();
         }
+
+        @Override
+        public Surface getSurface() {
+            return openSurface();
+        }
     }
 
     //-------------------------

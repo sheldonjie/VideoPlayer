@@ -136,6 +136,7 @@ public class TextureRenderView extends TextureView implements IRenderView {
         private TextureRenderView mTextureView;
         private SurfaceTexture mSurfaceTexture;
         private ISurfaceTextureHost mSurfaceTextureHost;
+        private Surface mSurface;
 
         public InternalSurfaceHolder(@NonNull TextureRenderView textureView,
                                      @Nullable SurfaceTexture surfaceTexture,
@@ -190,7 +191,15 @@ public class TextureRenderView extends TextureView implements IRenderView {
         public Surface openSurface() {
             if (mSurfaceTexture == null)
                 return null;
-            return new Surface(mSurfaceTexture);
+            mSurface = new Surface(mSurfaceTexture);
+            return mSurface;
+        }
+
+        public Surface getSurface() {
+            if(mSurface == null) {
+                return openSurface();
+            }
+            return mSurface;
         }
     }
 
