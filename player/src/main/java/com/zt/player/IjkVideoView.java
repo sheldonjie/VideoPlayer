@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -17,6 +20,8 @@ import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -93,6 +98,9 @@ public abstract class IjkVideoView extends FrameLayout {
     private int mSeekWhenPrepared;
 
     protected ViewGroup surfaceContainer;
+
+    //满屏填充暂停为徒
+    protected Bitmap mFullPauseBitmap;
 
     public IjkVideoView(@NonNull Context context) {
         super(context);
@@ -326,15 +334,15 @@ public abstract class IjkVideoView extends FrameLayout {
         }
     }
 
-    protected Bitmap initCover() {
-        if(mRenderView != null && mRenderView instanceof TextureRenderView) {
-            TextureRenderView textureRenderView = (TextureRenderView) mRenderView;
-            Bitmap bitmap = Bitmap.createBitmap(
-                    textureRenderView.getSizeW(), textureRenderView.getSizeH(), Bitmap.Config.RGB_565);
-            return textureRenderView.getBitmap(bitmap);
-        }
-        return null;
-    }
+//    protected Bitmap initCover() {
+//        if(mRenderView != null && mRenderView instanceof TextureRenderView) {
+//            TextureRenderView textureRenderView = (TextureRenderView) mRenderView;
+//            Bitmap bitmap = Bitmap.createBitmap(
+//                    textureRenderView.getSizeW(), textureRenderView.getSizeH(), Bitmap.Config.RGB_565);
+//            return textureRenderView.getBitmap(bitmap);
+//        }
+//        return null;
+//    }
 
     public void setRenderView(IRenderView renderView) {
         if (mRenderView != null) {
@@ -853,6 +861,7 @@ public abstract class IjkVideoView extends FrameLayout {
                 bindSurfaceHolder(mMediaPlayer, holder);
 //            else
 //                openVideo();
+            showPauseCover(holder);
         }
 
         @Override
@@ -886,6 +895,25 @@ public abstract class IjkVideoView extends FrameLayout {
     protected abstract void showDisallowDialog();  //拦截提示对话框
 
     //endregion
+
+    protected void showPauseCover(IRenderView.ISurfaceHolder surfaceHolder) {
+
+        if(mCurrentState != STATE_PAUSED) {
+            return;
+        }
+
+        Surface mSurface = surfaceHolder.openSurface();
+        TextureView mTextureView = (TextureView) surfaceHolder.getRenderView();
+
+        if (mSurface != null && mSurface.isValid() && mFullPauseBitmap != null && !mFullPauseBitmap.isRecycled()) {
+            RectF rectF = new RectF(0, 0, mTextureView.getWidth(), mTextureView.getHeight());
+            Canvas canvas = mSurface.lockCanvas(new Rect(0, 0, mTextureView.getWidth(), mTextureView.getHeight()));
+            if (canvas != null) {
+                canvas.drawBitmap(mFullPauseBitmap, null, rectF, null);
+                mSurface.unlockCanvasAndPost(canvas);
+            }
+        }
+    }
 
     protected abstract void changeUIWithState(int state);
 

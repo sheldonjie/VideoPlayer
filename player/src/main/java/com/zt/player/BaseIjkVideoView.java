@@ -17,6 +17,8 @@ import android.view.ViewParent;
 import android.view.Window;
 import android.widget.FrameLayout;
 
+import com.zt.player.ijk.widget.media.TextureRenderView;
+
 /**
  * Created by zhouteng on 2017/5/22.
  */
@@ -31,8 +33,6 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
     //是否需要在利用window实现全屏幕的时候隐藏statusbar
     protected boolean mStatusBar = false;
 
-    //满屏填充暂停为徒
-    protected Bitmap mFullPauseBitmap;
 
     //region 构造函数
 
@@ -169,7 +169,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
 
         isFullScreen = false;
 
-        pauseFullCoverLogic();
+//        pauseFullCoverLogic();
 
         CTUtils.toggledFullscreen(getContext(),false);
 
@@ -201,7 +201,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
         this.mActionBar = mActionBar;
         this.mStatusBar = mStatusBar;
 
-        pauseFullCoverLogic();
+//        pauseFullCoverLogic();
 
         CTUtils.hideSupportActionBar(getContext(),mActionBar,mStatusBar);
 
@@ -238,6 +238,17 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
             }
         }
     }
+
+    protected Bitmap initCover() {
+        if (mRenderView != null && mRenderView instanceof TextureRenderView) {
+            TextureRenderView textureRenderView = (TextureRenderView) mRenderView;
+            Bitmap bitmap = Bitmap.createBitmap(
+                    textureRenderView.getSizeW(), textureRenderView.getSizeH(), Bitmap.Config.RGB_565);
+            return textureRenderView.getBitmap(bitmap);
+        }
+        return null;
+    }
+
     //endregion
 
     /**
@@ -259,7 +270,7 @@ public abstract class BaseIjkVideoView extends IjkVideoView implements View.OnCl
             case STATE_PLAYING:
             case STATE_PAUSED:
                 startProgressTimer();
-//                pauseFullCoverLogic();
+                pauseFullCoverLogic();
                 break;
             case STATE_ERROR:
                 cancelProgressTimer();
