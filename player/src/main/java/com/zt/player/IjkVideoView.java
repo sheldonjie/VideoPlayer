@@ -102,6 +102,9 @@ public abstract class IjkVideoView extends FrameLayout {
     //满屏填充暂停为徒
     protected Bitmap mFullPauseBitmap;
 
+    //音频焦点的监听
+    protected AudioManager mAudioManager;
+
     public IjkVideoView(@NonNull Context context) {
         super(context);
         init(context);
@@ -126,6 +129,8 @@ public abstract class IjkVideoView extends FrameLayout {
     protected void init(Context context) {
 
         mAppContext = context.getApplicationContext();
+
+        mAudioManager = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
 
         initView(context);
         initSettings();
@@ -199,8 +204,7 @@ public abstract class IjkVideoView extends FrameLayout {
         }
 
         release(false);
-        AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
-        am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        mAudioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
         try {
             mMediaPlayer = createPlayer(mSettings.getPlayer());
@@ -496,18 +500,28 @@ public abstract class IjkVideoView extends FrameLayout {
     }
 
     public int getCurrentPosition() {
-        if (isInPlaybackState()) {
-            return (int) mMediaPlayer.getCurrentPosition();
+
+        int position = 0;
+        if (mCurrentState == STATE_PLAYING || mCurrentState == STATE_PAUSED) {
+            try {
+                position = (int) mMediaPlayer.getCurrentPosition();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+                return position;
+            }
         }
-        return 0;
+        return position;
     }
 
     public int getDuration() {
-        if (isInPlaybackState()) {
-            return (int) mMediaPlayer.getDuration();
+        int duration = -1;
+        try {
+            duration = (int) mMediaPlayer.getDuration();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return duration;
         }
-
-        return -1;
+        return duration;
     }
 
     protected boolean isInPlaybackState() {

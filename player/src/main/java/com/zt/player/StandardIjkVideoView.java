@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,8 +16,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
-import com.zt.player.ijk.widget.media.TextureRenderView;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -139,6 +136,36 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
     @Override
     protected int getFullScreenBtnId() {
         return R.id.fullscreen;
+    }
+
+    @Override
+    public View getShareBtn() {
+        return findViewById(R.id.share);
+    }
+
+    @Override
+    public View getTitleView() {
+        return findViewById(R.id.title);
+    }
+
+    @Override
+    public View getBackBtn() {
+        return findViewById(R.id.back);
+    }
+
+    @Override
+    public View getFullScreenBtn() {
+        return findViewById(R.id.fullscreen);
+    }
+
+    @Override
+    public View getTinyWindowSwitchBtn() {
+        return findViewById(R.id.tiny_window);
+    }
+
+    @Override
+    protected void setBottomProgress(int progress) {
+        bottomProgressbar.setProgress(progress);
     }
 
     @Override
@@ -274,9 +301,9 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
                     ((Activity) getContext()).runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            bottomContainer.setVisibility(View.GONE);
-                            topContainer.setVisibility(View.GONE);
-                            startButton.setVisibility(View.GONE);
+                            bottomContainer.setVisibility(View.INVISIBLE);
+                            topContainer.setVisibility(View.INVISIBLE);
+                            startButton.setVisibility(View.INVISIBLE);
                             bottomProgressbar.setVisibility(View.VISIBLE);
                         }
                     });
@@ -334,30 +361,30 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
     //region 各种状态下UI的显示风格
 
     private void changeUIWithIdle() {
-        setViewsVisible(View.VISIBLE, View.GONE, View.VISIBLE, View.GONE, View.VISIBLE, View.GONE);
+        setViewsVisible(View.VISIBLE, View.INVISIBLE, View.VISIBLE, View.INVISIBLE, View.VISIBLE, View.INVISIBLE);
         updateStartImage();
     }
 
     private void changeUIWithPreparing() {
-        setViewsVisible(View.VISIBLE, View.VISIBLE, View.GONE, View.VISIBLE, View.GONE, View.GONE);
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.INVISIBLE, View.VISIBLE, View.INVISIBLE, View.INVISIBLE);
     }
 
     private void changeUIWithPlaying() {
-        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.INVISIBLE, View.INVISIBLE, View.INVISIBLE);
         updateStartImage();
     }
 
     private void changeUIWithPause() {
-        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.INVISIBLE, View.INVISIBLE, View.INVISIBLE);
         updateStartImage();
     }
 
     private void changeUIWithError() {
-        setViewsVisible(View.GONE, View.GONE, View.VISIBLE, View.GONE, View.GONE, View.GONE);
+        setViewsVisible(View.INVISIBLE, View.INVISIBLE, View.VISIBLE, View.INVISIBLE, View.INVISIBLE, View.INVISIBLE);
     }
 
     private void changeUIWithComplete() {
-        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.GONE, View.VISIBLE, View.GONE);
+        setViewsVisible(View.VISIBLE, View.VISIBLE, View.VISIBLE, View.INVISIBLE, View.VISIBLE, View.INVISIBLE);
     }
 
     private void updateStartImage() {
@@ -378,6 +405,27 @@ public class StandardIjkVideoView extends BaseIjkVideoView implements SeekBar.On
         loadingProgressBar.setVisibility(loadingProVisi);
         thumbView.setVisibility(thumbVisi);
         bottomProgressbar.setVisibility(bottomProVisi);
+    }
+
+    //endregion
+
+
+    //region 全屏和正常状态UI切换变化
+
+    @Override
+    protected void changeToFullScreen() {
+        ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+        layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        setLayoutParams(layoutParams);
+    }
+
+    @Override
+    protected void changeToNormalScreen() {
+        ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        layoutParams.width = originViewWidth;
+        layoutParams.height = originViewHeight;
+        setLayoutParams(layoutParams);
     }
 
     //endregion

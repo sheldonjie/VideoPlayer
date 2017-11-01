@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
+import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -124,7 +125,7 @@ public class CTUtils {
         if (actionBar) {
             Activity appCompatActivity = CTUtils.getActivity(context);
             if (appCompatActivity != null && appCompatActivity instanceof AppCompatActivity) {
-                ActionBar ab = ((AppCompatActivity)appCompatActivity).getSupportActionBar();
+                ActionBar ab = ((AppCompatActivity) appCompatActivity).getSupportActionBar();
                 if (ab != null) {
                     ab.setShowHideAnimationEnabled(false);
                     ab.show();
@@ -138,7 +139,7 @@ public class CTUtils {
                 fragmentActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
             } else {
                 Activity activity = CTUtils.getActivity(context);
-                if(activity != null) {
+                if (activity != null) {
                     activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                 }
             }
@@ -158,7 +159,7 @@ public class CTUtils {
             attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
             attrs.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
             mActivity.getWindow().setAttributes(attrs);
-            if (android.os.Build.VERSION.SDK_INT >= 14) {
+            if (Build.VERSION.SDK_INT >= 14) {
                 //noinspection all
                 mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
             }
@@ -168,7 +169,7 @@ public class CTUtils {
             attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
             attrs.flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
             mActivity.getWindow().setAttributes(attrs);
-            if (android.os.Build.VERSION.SDK_INT >= 14) {
+            if (Build.VERSION.SDK_INT >= 14) {
                 //noinspection all
                 mActivity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             }
@@ -195,6 +196,24 @@ public class CTUtils {
 
     public static void showNavKey(Context context, int systemUiVisibility) {
         ((Activity) context).getWindow().getDecorView().setSystemUiVisibility(systemUiVisibility);
+    }
+
+    public static boolean getCurrentScreenLand(Context context) {
+        Activity activity = CTUtils.getActivity(context);
+        if (activity == null) {
+            return false;
+        }
+        return activity.getWindowManager().getDefaultDisplay().getRotation() == Surface.ROTATION_90 ||
+                activity.getWindowManager().getDefaultDisplay().getRotation() == Surface.ROTATION_270;
+
+    }
+
+    /**
+     * dip转为PX
+     */
+    public static int dip2px(Context context, float dipValue) {
+        float fontScale = context.getResources().getDisplayMetrics().density;
+        return (int) (dipValue * fontScale + 0.5f);
     }
 
 }
